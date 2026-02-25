@@ -1,4 +1,16 @@
-# Welcome to your Expo app 👋
+# Welcome to desafio utech 👋
+
+For run: 
+
+# Terminal 1 — servidor mock
+   ```bash
+   npm run server
+   ```
+
+# Terminal 2 — app Expo
+   ```bash
+   npm start
+   ```
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
