@@ -111,10 +111,10 @@ const PORT = 3001;
 server.listen(PORT, () => {
   console.log(`HTTP server running at http://localhost:${PORT}`);
   console.log(`WebSocket server running at ws://localhost:${PORT}`);
-  console.log("Simulating events every 5-12 seconds...\n");
+  console.log("Simulating events every 3-8 seconds...\n");
 
   function scheduleNext() {
-    const delay = 5000 + Math.random() * 7000;
+    const delay = 3000 + Math.random() * 5000;
     setTimeout(() => {
       simulateEvents();
       scheduleNext();

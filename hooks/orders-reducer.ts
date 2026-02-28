@@ -44,7 +44,7 @@ export const initialState: OrdersState = {
  */
 export function ordersReducer(
   state: OrdersState,
-  action: OrdersAction
+  action: OrdersAction,
 ): OrdersState {
   switch (action.type) {
     case "FETCH_START":
@@ -91,7 +91,7 @@ export function ordersReducer(
       return {
         ...state,
         orders: state.orders.map((o) =>
-          o.id === action.payload.id ? action.payload : o
+          o.id === action.payload.id ? action.payload : o,
         ),
       };
 
@@ -101,7 +101,7 @@ export function ordersReducer(
       return {
         ...state,
         orders: state.orders.map((o) =>
-          o.id === action.payload ? { ...o, status: "cancelled" as const } : o
+          o.id === action.payload ? { ...o, status: "cancelled" as const } : o,
         ),
       };
 

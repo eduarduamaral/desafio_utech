@@ -9,10 +9,14 @@ import {
   OrdersAction,
 } from "./orders-reducer";
 
-// O LayoutAnimation no Android requer habilitação explícita via UIManager.
-// No iOS e Web isso não é necessário.
+// No Android com a Old Architecture, o LayoutAnimation precisa ser habilitado
+// explicitamente. Na New Architecture essa chamada é um no-op e gera warning,
+// então só executamos quando a New Architecture não está ativa.
+const isNewArch =
+  typeof (global as unknown as { __turboModuleProxy?: unknown }).__turboModuleProxy === "object";
 if (
   Platform.OS === "android" &&
+  !isNewArch &&
   UIManager.setLayoutAnimationEnabledExperimental
 ) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -98,7 +102,7 @@ export function useOrders(): UseOrdersReturn {
         dispatch({ type: "FETCH_SUCCESS", payload: orders });
       } catch (err) {
         const message =
-          err instanceof Error ? err.message : "Failed to load orders";
+          err instanceof Error ? err.message : "Falha ao carregar pedidos";
         if (mode !== "silent") {
           dispatch({ type: "FETCH_ERROR", payload: message });
         }
