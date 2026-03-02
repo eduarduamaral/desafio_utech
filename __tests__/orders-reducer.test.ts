@@ -1,4 +1,8 @@
-import { ordersReducer, initialState, OrdersState } from "../hooks/orders-reducer";
+import {
+  initialState,
+  ordersReducer,
+  OrdersState,
+} from "../hooks/orders-reducer";
 import { Order } from "../types/order";
 
 const mockOrder = (overrides: Partial<Order> = {}): Order => ({

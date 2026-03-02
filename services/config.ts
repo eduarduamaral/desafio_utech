@@ -1,12 +1,8 @@
 import { Platform } from "react-native";
 
-/**
- * Em dispositivos Android físicos e no emulador, "localhost" aponta para
- * o próprio dispositivo, não para a máquina host. O endereço especial
- * 10.0.2.2 é um alias que o emulador AVD mapeia para 127.0.0.1 do host.
- * Em dispositivos físicos, substitua pelo IP local da máquina de desenvolvimento
- * (ex: "192.168.1.10").
- */
+// No Android emulator, localhost aponta para o próprio dispositivo.
+// 10.0.2.2 é o alias do host no AVD.
+// Em dispositivo físico, trocar pelo IP da máquina.
 const LOCALHOST = Platform.select({
   android: "10.0.2.2",
   default: "localhost",

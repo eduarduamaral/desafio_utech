@@ -46,7 +46,7 @@ export default function OrdersScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Order }) => <OrderCard order={item} isDark={isDark} />,
-    [isDark],
+    [isDark]
   );
 
   const keyExtractor = useCallback((item: Order) => item.id, []);

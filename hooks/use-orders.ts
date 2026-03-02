@@ -9,9 +9,6 @@ import {
   OrdersAction,
 } from "./orders-reducer";
 
-// No Android com a Old Architecture, o LayoutAnimation precisa ser habilitado
-// explicitamente. Na New Architecture essa chamada é um no-op e gera warning,
-// então só executamos quando a New Architecture não está ativa.
 const isNewArch =
   typeof (global as unknown as { __turboModuleProxy?: unknown }).__turboModuleProxy === "object";
 if (
@@ -22,8 +19,6 @@ if (
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-// Configuração de animação reutilizável para transições de layout da lista.
-// easeInEaseOut com opacity dá uma sensação suave de entrada/saída dos cards.
 const LAYOUT_ANIM_CONFIG = LayoutAnimation.create(
   300,
   LayoutAnimation.Types.easeInEaseOut,
@@ -43,23 +38,11 @@ interface UseOrdersReturn {
 export function useOrders(): UseOrdersReturn {
   const [state, dispatch] = useReducer(ordersReducer, initialState);
 
-  /**
-   * Wrapper que agenda a animação de layout antes de despachar uma action
-   * que modifica a lista. O LayoutAnimation precisa ser configurado
-   * *antes* da mudança de estado — na próxima renderização o React Native
-   * já aplica a transição automaticamente em todos os filhos afetados.
-   */
   const animateAndDispatch = useCallback((action: OrdersAction) => {
     LayoutAnimation.configureNext(LAYOUT_ANIM_CONFIG);
     dispatch(action);
   }, []);
 
-  /**
-   * Traduz eventos do WebSocket para actions do reducer.
-   * useCallback com deps estáveis evita que uma nova referência de função
-   * seja passada ao useWebSocket a cada render, o que causaria
-   * recriação desnecessária da conexão.
-   */
   const handleWebSocketEvent = useCallback(
     (event: WebSocketEvent) => {
       switch (event.type) {
@@ -80,17 +63,8 @@ export function useOrders(): UseOrdersReturn {
     [animateAndDispatch]
   );
 
-  /**
-   * Função central de busca de pedidos, compartilhada pelos três modos:
-   *
-   * - "load"    → exibe spinner, erro vai para a tela de erro
-   * - "refresh" → exibe indicador de pull-to-refresh, erro vai para banner
-   * - "silent"  → sem feedback visual, falha é descartada
-   *
-   * O modo "silent" é usado pelo onReconnect: queremos atualizar os dados
-   * após reconectar mas sem perturbar a UI caso o fetch falhe — o usuário
-   * ainda vê os dados anteriores, que continuam válidos.
-   */
+  // "silent" não mostra erro na UI — usado na reconexão do WS pra não
+  // perturbar o usuário se o refetch falhar
   const doFetch = useCallback(
     async (mode: "load" | "refresh" | "silent") => {
       if (mode === "load") dispatch({ type: "FETCH_START" });
@@ -111,11 +85,6 @@ export function useOrders(): UseOrdersReturn {
     []
   );
 
-  /**
-   * Disparado pelo useWebSocket sempre que a conexão é restabelecida
-   * após uma queda. O refetch em modo silencioso garante que pedidos
-   * que chegaram enquanto o app estava desconectado sejam sincronizados.
-   */
   const handleReconnect = useCallback(() => {
     doFetch("silent");
   }, [doFetch]);

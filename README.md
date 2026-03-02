@@ -1,62 +1,51 @@
-# Welcome to desafio utech 👋
+# Desafio UTech — Monitoramento de Pedidos
 
-For run: 
+App React Native (Expo) para monitoramento de pedidos em tempo real via HTTP + WebSocket.
 
-# Terminal 1 — servidor mock
-   ```bash
-   npm run server
-   ```
-
-# Terminal 2 — app Expo
-   ```bash
-   npm start
-   ```
-
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
-
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Como rodar
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Em dois terminais:
 
-## Learn more
+```bash
+# Terminal 1 — servidor mock (porta 3001)
+npm run server
 
-To learn more about developing your project with Expo, look at the following resources:
+# Terminal 2 — app
+npm start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Para rodar os testes:
 
-## Join the community
+```bash
+npm test
+```
 
-Join our community of developers creating universal apps.
+## Estrutura
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```
+types/order.ts          → tipos do pedido e eventos WS
+services/config.ts      → URLs de HTTP e WebSocket
+services/api.ts         → fetch da lista de pedidos
+services/validation.ts  → validação runtime dos eventos WS
+hooks/orders-reducer.ts → reducer puro (state dos pedidos)
+hooks/use-websocket.ts  → conexão WS com reconexão automática
+hooks/use-orders.ts     → hook principal que une HTTP + WS
+components/             → OrderCard, ConnectionStatusBadge, EmptyState
+app/(tabs)/index.tsx    → tela de pedidos
+server/index.js         → mock server (HTTP + WS)
+__tests__/              → testes do reducer e da validação
+```
+
+## Decisões técnicas
+
+- **useReducer** em vez de múltiplos useState pra manter o estado dos pedidos consistente (loading, error, orders mudam juntos)
+- **Reducer extraído** do hook pra poder testar isoladamente sem dependências de React Native
+- **Validação runtime** dos eventos WS porque TypeScript só garante tipos em compilação — dados vindos do servidor podem estar malformados
+- **Exponential backoff** na reconexão WS (1s → 2s → 4s → ... → 30s) pra não sobrecarregar o servidor
+- **Refetch silencioso** ao reconectar o WS pra sincronizar pedidos que possam ter sido perdidos
+- **React.memo** no OrderCard pra evitar re-render de todos os cards quando só um muda
+- **LayoutAnimation** pra animar entrada/saída de pedidos na lista

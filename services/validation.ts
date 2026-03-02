@@ -1,23 +1,9 @@
 import { Order, WebSocketEvent } from "@/types/order";
 
-/**
- * Type guard que verifica se um valor desconhecido é um objeto não-nulo.
- * Necessário porque typeof null === "object" em JavaScript — sem essa
- * checagem extra, null passaria pela verificação de tipo de objeto.
- */
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
-/**
- * Tenta extrair um Order válido de um valor desconhecido.
- *
- * Valida tanto os tipos primitivos quanto os valores do domínio:
- * verificar typeof status === "string" não é suficiente — um status
- * "desconhecido" passaria a checagem de tipo mas quebraria o mapeamento
- * de estilos no OrderCard. A validação de domínio garante consistência
- * entre runtime e TypeScript.
- */
 function parseOrder(value: unknown): Order | null {
   if (!isObject(value)) return null;
   if (
@@ -40,17 +26,7 @@ function parseOrder(value: unknown): Order | null {
   };
 }
 
-/**
- * Faz o parse e a validação de uma mensagem raw do WebSocket.
- *
- * Retorna null (em vez de lançar exceção) porque um evento malformado
- * não é um erro fatal — o app deve ignorar silenciosamente e continuar
- * funcionando. Essa abordagem defensiva protege o estado da aplicação
- * contra dados inesperados vindos do servidor.
- *
- * O TypeScript garante tipos apenas em tempo de compilação; esta função
- * é a barreira de segurança em runtime antes que os dados entrem no reducer.
- */
+/** Valida e parseia uma mensagem raw do WebSocket. Retorna null se inválida. */
 export function parseWebSocketEvent(raw: string): WebSocketEvent | null {
   try {
     const data = JSON.parse(raw);
@@ -70,15 +46,11 @@ export function parseWebSocketEvent(raw: string): WebSocketEvent | null {
       }
 
       case "ORDER_CANCELLED": {
-        // Para cancelamento, só o id é necessário — o restante dos dados
-        // já existe no estado local e não precisa ser retransmitido.
         if (!isObject(data.payload) || typeof data.payload.id !== "string")
           return null;
         return { type: "ORDER_CANCELLED", payload: { id: data.payload.id } };
       }
 
-      // Eventos desconhecidos são ignorados — garante compatibilidade
-      // caso o servidor envie novos tipos de evento no futuro.
       default:
         return null;
     }

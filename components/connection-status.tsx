@@ -18,11 +18,6 @@ interface StatusConfig {
   darkBgColor: string;
 }
 
-/**
- * Paleta de cores para cada estado da conexão, com variantes light/dark.
- * Verde = estável, amarelo = atenção, vermelho = problema.
- * Definido fora do componente para não ser recriado a cada render.
- */
 const STATUS_CONFIG: Record<ConnectionStatusType, StatusConfig> = {
   connected: {
     label: "Conectado",
@@ -54,35 +49,21 @@ interface Props {
 
 export function ConnectionStatusBadge({ status, isDark }: Props) {
   const config = STATUS_CONFIG[status];
-
-  /**
-   * useSharedValue do Reanimated roda no thread de UI (não no JS thread),
-   * garantindo animações suaves mesmo com o JS thread ocupado processando
-   * eventos do WebSocket ou atualizações de estado.
-   */
   const pulseOpacity = useSharedValue(1);
 
   useEffect(() => {
     if (status === "reconnecting") {
-      // withRepeat(-1, true): -1 = infinito, true = reversa (vai e volta)
-      // Cria o efeito de pulsação: opacidade oscila entre 1 e 0.3.
       pulseOpacity.value = withRepeat(
         withTiming(0.3, { duration: 800 }),
         -1,
         true
       );
     } else {
-      // Cancela a animação em loop antes de transicionar para o valor final,
-      // evitando que a animação anterior interfira na nova transição.
       cancelAnimation(pulseOpacity);
       pulseOpacity.value = withTiming(1, { duration: 200 });
     }
   }, [status, pulseOpacity]);
 
-  /**
-   * useAnimatedStyle cria um estilo que é atualizado diretamente no thread
-   * de UI toda vez que pulseOpacity muda, sem passar pelo React.
-   */
   const dotStyle = useAnimatedStyle(() => ({
     opacity: pulseOpacity.value,
   }));
@@ -92,8 +73,6 @@ export function ConnectionStatusBadge({ status, isDark }: Props) {
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
-      {/* Animated.View é necessário para aplicar estilos animados —
-          View comum não aceita valores do Reanimated. */}
       <Animated.View
         style={[styles.dot, { backgroundColor: textColor }, dotStyle]}
       />

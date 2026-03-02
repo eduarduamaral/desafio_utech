@@ -3,14 +3,7 @@ import { ThemedText } from "./themed-text";
 import { IconSymbol } from "./ui/icon-symbol";
 import { useThemeColor } from "@/hooks/use-theme-color";
 
-/**
- * Exibido quando a lista de pedidos está vazia após o carregamento.
- * Comunica ao usuário as duas formas de obter dados: ação manual
- * (pull-to-refresh) e automática (WebSocket em background).
- */
 export function EmptyState() {
-  // Reaproveita a cor de ícone do tema para manter consistência visual
-  // sem hardcodar uma cor que não se adaptaria ao dark mode.
   const iconColor = useThemeColor({}, "icon");
 
   return (
@@ -29,8 +22,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    // paddingVertical em vez de justifyContent: "center" sozinho para que
-    // o conteúdo não fique colado ao topo quando a FlatList é pequena.
     paddingVertical: 80,
     gap: 12,
   },
