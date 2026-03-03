@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -6,14 +6,17 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { useScrollToTop } from "@react-navigation/native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { ConnectionStatusBadge } from "@/components/connection-status";
 import { EmptyState } from "@/components/empty-state";
+import { OfflineBanner } from "@/components/offline-banner";
 import { OrderCard } from "@/components/order-card";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useNetwork } from "@/hooks/use-network";
 import { useOrders } from "@/hooks/use-orders";
 import { useThemeColor } from "@/hooks/use-theme-color";
 import { Order } from "@/types/order";
@@ -33,6 +36,10 @@ export default function OrdersScreen() {
   const tintColor = useThemeColor({}, "tint");
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { isConnected } = useNetwork();
+
+  const listRef = useRef<FlatList>(null);
+  useScrollToTop(listRef);
 
   useEffect(() => {
     loadOrders();
@@ -46,7 +53,7 @@ export default function OrdersScreen() {
 
   const renderItem = useCallback(
     ({ item }: { item: Order }) => <OrderCard order={item} isDark={isDark} />,
-    [isDark]
+    [isDark],
   );
 
   const keyExtractor = useCallback((item: Order) => item.id, []);
@@ -79,6 +86,8 @@ export default function OrdersScreen() {
 
   return (
     <ThemedView style={styles.container}>
+      <OfflineBanner visible={isConnected === false} />
+
       <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
         <ThemedText type="title" style={styles.title}>
           Pedidos
@@ -100,6 +109,7 @@ export default function OrdersScreen() {
       )}
 
       <FlatList
+        ref={listRef}
         data={sortedOrders}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
@@ -107,7 +117,7 @@ export default function OrdersScreen() {
         refreshing={isRefreshing}
         onRefresh={onRefresh}
         ListEmptyComponent={EmptyState}
-        showsVerticalScrollIndicator={false}
+        showsVerticalScrollIndicator={true}
         ListHeaderComponent={
           orders.length > 0 ? (
             <ThemedText style={styles.countText}>

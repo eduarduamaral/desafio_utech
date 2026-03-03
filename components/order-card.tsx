@@ -1,13 +1,19 @@
+import { useThemeColor } from "@/hooks/use-theme-color";
+import { Order } from "@/types/order";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { ThemedText } from "./themed-text";
 import { ThemedView } from "./themed-view";
-import { Order } from "@/types/order";
-import { useThemeColor } from "@/hooks/use-theme-color";
 
 const STATUS_STYLES: Record<
   Order["status"],
-  { label: string; color: string; bgColor: string; darkColor: string; darkBgColor: string }
+  {
+    label: string;
+    color: string;
+    bgColor: string;
+    darkColor: string;
+    darkBgColor: string;
+  }
 > = {
   pending: {
     label: "Pendente",
@@ -37,7 +43,10 @@ interface Props {
   isDark: boolean;
 }
 
-export const OrderCard = React.memo(function OrderCard({ order, isDark }: Props) {
+export const OrderCard = React.memo(function OrderCard({
+  order,
+  isDark,
+}: Props) {
   const statusConfig = STATUS_STYLES[order.status];
   const borderColor = useThemeColor({}, "icon");
 
@@ -58,7 +67,7 @@ export const OrderCard = React.memo(function OrderCard({ order, isDark }: Props)
       <View style={styles.footer}>
         <ThemedText style={styles.orderId}>#{order.id}</ThemedText>
         <ThemedText style={styles.amount}>
-          ${order.amount.toFixed(2)}
+          R$ {order.amount.toFixed(2)}
         </ThemedText>
       </View>
     </ThemedView>

@@ -3,6 +3,7 @@ import { LayoutAnimation, Platform, UIManager } from "react-native";
 import { ConnectionStatus, Order, WebSocketEvent } from "@/types/order";
 import { useWebSocket } from "./use-websocket";
 import { fetchOrders } from "@/services/api";
+import { loadOrdersCache, saveOrdersCache } from "@/services/storage";
 import {
   ordersReducer,
   initialState,
@@ -74,6 +75,7 @@ export function useOrders(): UseOrdersReturn {
         const orders = await fetchOrders();
         LayoutAnimation.configureNext(LAYOUT_ANIM_CONFIG);
         dispatch({ type: "FETCH_SUCCESS", payload: orders });
+        saveOrdersCache(orders);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Falha ao carregar pedidos";
@@ -94,7 +96,16 @@ export function useOrders(): UseOrdersReturn {
     onReconnect: handleReconnect,
   });
 
-  const loadOrders = useCallback(() => doFetch("load"), [doFetch]);
+  // Stale-while-revalidate: exibe o cache imediatamente enquanto
+  // busca dados frescos em background, eliminando o spinner na reabertura
+  const loadOrders = useCallback(async () => {
+    const cached = await loadOrdersCache();
+    if (cached) {
+      dispatch({ type: "FETCH_SUCCESS", payload: cached });
+    }
+    doFetch(cached ? "silent" : "load");
+  }, [doFetch]);
+
   const onRefresh = useCallback(() => doFetch("refresh"), [doFetch]);
 
   return {
